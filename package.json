@@ -1,0 +1,14 @@
+{
+  "name": "monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter @monorepo/client dev",
+    "build": "bun run --filter @monorepo/client build",
+    "lint": "bun run --filter '*' lint"
+  }
+}
