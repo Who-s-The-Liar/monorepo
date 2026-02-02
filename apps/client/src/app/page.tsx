@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/8bit/button'
-import React from 'react'
+import Link from 'next/link'
 
 const Page = () => {
   return (
-    <div><Button>Click me</Button></div>
+    <div className='min-h-screen flex items-center justify-center'><Link href="/playground"><Button>Click me</Button></Link></div>
   )
 }
 
