@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export interface CharacterOptions {
   assetPath: string;
@@ -36,13 +36,14 @@ export class Character {
   }
 
   async load(): Promise<void> {
-    const loader = new FBXLoader();
+    const loader = new GLTFLoader();
     return new Promise<void>((resolve, reject) => {
       loader.load(
         this.options.assetPath,
-        (model) => {
+        (gltf) => {
+          const model = gltf.scene;
           this.model = model;
-          model.scale.setScalar(this.options.scale ?? 1);
+          model.scale.setScalar(this.options.scale ?? 60);
 
           if (this.options.position) {
             model.position.copy(this.options.position);
@@ -51,15 +52,8 @@ export class Character {
             model.rotation.copy(this.options.rotation);
           }
 
-          // Hide all FBX helper objects — only keep SkinnedMesh (character body),
-          // Bones (skeleton), and container Groups/Object3Ds
-          model.traverse((child) => {
-            if (child === model) return;
-            if (child instanceof THREE.Bone) return;
-            if ((child as THREE.SkinnedMesh).isSkinnedMesh) return;
-            if (child.type === "Group" || child.type === "Object3D") return;
-            child.visible = false;
-          });
+          // Store animations on the model for onLoaded to access
+          model.animations = gltf.animations;
 
           this.mixer = new THREE.AnimationMixer(model);
           this.onLoaded(model);
@@ -83,26 +77,26 @@ export class Character {
   }
 
   /**
-   * Load an extra animation FBX (e.g. standing card shuffle),
+   * Load an extra animation GLB (e.g. standing card shuffle),
    * strip lower body tracks so it layers on top of sitting.
    */
   async loadAnimation(
     name: string,
-    fbxPath: string,
+    path: string,
     upperBodyOnly = true
   ): Promise<void> {
     if (!this.mixer) return;
-    const loader = new FBXLoader();
+    const loader = new GLTFLoader();
     return new Promise<void>((resolve, reject) => {
       loader.load(
-        fbxPath,
-        (animFbx) => {
-          if (!this.mixer || animFbx.animations.length === 0) {
+        path,
+        (gltf) => {
+          if (!this.mixer || gltf.animations.length === 0) {
             resolve();
             return;
           }
 
-          let clip = animFbx.animations[0];
+          let clip = gltf.animations[0];
 
           if (upperBodyOnly) {
             const filtered = clip.tracks.filter(
@@ -144,6 +138,12 @@ export class Character {
         this.currentAction = action;
       }
     }
+  }
+
+  /** Fade out any active overlay, returning to bind pose / base animation */
+  stopOverlay(fadeDuration = 0.4): void {
+    this.activeOverlay?.fadeOut(fadeDuration);
+    this.activeOverlay = null;
   }
 
   update(delta: number): void {

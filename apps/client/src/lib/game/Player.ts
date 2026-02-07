@@ -86,19 +86,19 @@ export class Player extends Character {
   }
 
   protected onLoaded(model: THREE.Group): void {
-    // Hide head mesh
-    model.traverse((child) => {
-      if (child.name.toLowerCase().includes("head")) {
-        child.visible = false;
-      }
-    });
-
     // Play animation but freeze at frame 0
     if (model.animations.length > 0 && this.mixer) {
       const action = this.mixer.clipAction(model.animations[0]);
       action.play();
       action.paused = true;
     }
+
+    // Hide head mesh so it doesn't block the camera
+    model.traverse((child) => {
+      if (child.name.toLowerCase().includes("head")) {
+        child.visible = false;
+      }
+    });
   }
 
   update(delta: number): void {

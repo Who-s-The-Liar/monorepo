@@ -2,13 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
-import {
-  Game,
-  Player,
-  NPC,
-  computeSeats,
-  createCenterPaper,
-} from "@/lib/game";
+import { Game, Player, NPC, computeSeats, createCenterPaper } from "@/lib/game";
 
 export default function PlaygroundPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,11 +33,11 @@ export default function PlaygroundPage() {
       // Seat 0 is always the local player
       const playerSeat = seats[0];
       const player = new Player(game.scene, game.camera, {
-        assetPath: "/assets/Sitting.fbx",
+        assetPath: "/assets/Sitting.glb",
         position: playerSeat.position,
         rotation: playerSeat.rotation,
         neckPosition: playerSeat.neckPosition,
-        eyeOffset: new THREE.Vector3(0, 10, 12),
+        eyeOffset: new THREE.Vector3(0, 3, -12),
         initialYaw: playerSeat.initialYaw,
       });
       playerRef.current = player;
@@ -55,14 +49,14 @@ export default function PlaygroundPage() {
       for (let i = 1; i < seats.length; i++) {
         const seat = seats[i];
         const npc = new NPC(game.scene, {
-          assetPath: "/assets/Sitting.fbx",
+          assetPath: "/assets/Sitting.glb",
           position: seat.position,
           rotation: seat.rotation,
         });
         game.addCharacter(npc);
         await npc.load();
         // Pre-load the shuffle animation (upper body only)
-        await npc.loadAnimation("shuffle", "/assets/Cards.fbx");
+        await npc.loadAnimation("shuffle", "/assets/Cards.glb");
         npcs.push(npc);
       }
       npcsRef.current = npcs;
@@ -100,7 +94,11 @@ export default function PlaygroundPage() {
 
     const next = !shuffling;
     for (const npc of npcs) {
-      npc.playAnimation(next ? "shuffle" : "base");
+      if (next) {
+        npc.playAnimation("shuffle");
+      } else {
+        npc.stopOverlay();
+      }
     }
     setShuffling(next);
   }, [shuffling]);

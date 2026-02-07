@@ -34,7 +34,7 @@ export class Game {
       75,
       container.clientWidth / container.clientHeight,
       0.1,
-      1000
+      500
     );
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });

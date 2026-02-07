@@ -8,7 +8,7 @@ export interface Seat {
   initialYaw: number;
 }
 
-const SITTING_HEIGHT = 110;
+const EYE_HEIGHT = 93;
 
 export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
   const seats: Seat[] = [];
@@ -18,13 +18,13 @@ export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
     seats.push({
       position: new THREE.Vector3(0, 0, radius),
       rotation: new THREE.Euler(0, Math.PI, 0), // face -Z (toward center)
-      neckPosition: new THREE.Vector3(0, SITTING_HEIGHT, radius),
+      neckPosition: new THREE.Vector3(0, EYE_HEIGHT, radius),
       initialYaw: 0, // camera faces -Z at yaw=0, which is toward center
     });
     seats.push({
       position: new THREE.Vector3(0, 0, -radius),
       rotation: new THREE.Euler(0, 0, 0), // face +Z (toward center)
-      neckPosition: new THREE.Vector3(0, SITTING_HEIGHT, -radius),
+      neckPosition: new THREE.Vector3(0, EYE_HEIGHT, -radius),
       initialYaw: Math.PI,
     });
   } else {
@@ -47,7 +47,7 @@ export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
       seats.push({
         position: pos,
         rotation: new THREE.Euler(0, yRot, 0),
-        neckPosition: new THREE.Vector3(x, SITTING_HEIGHT, z),
+        neckPosition: new THREE.Vector3(x, EYE_HEIGHT, z),
         initialYaw: Math.atan2(x, z),
       });
     }
@@ -58,7 +58,7 @@ export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
 
 export const TABLE_HEIGHT = 65;
 
-export function createCenterPaper(radius = 98): THREE.Mesh {
+export function createCenterPaper(radius = 90): THREE.Mesh {
   const geometry = new THREE.CircleGeometry(radius, 64);
   const material = new THREE.MeshStandardMaterial({
     color: 0xf5f5f0,
