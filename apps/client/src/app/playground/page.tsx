@@ -99,9 +99,13 @@ export default function PlaygroundPage() {
 
       scene.add(model);
 
+      // Play the sitting animation but freeze it at frame 0
+      // so the player holds a static sitting pose
       playerMixer = new THREE.AnimationMixer(model);
       if (model.animations.length > 0) {
-        playerMixer.clipAction(model.animations[0]).play();
+        const action = playerMixer.clipAction(model.animations[0]);
+        action.play();
+        action.paused = true;
       }
     });
 
