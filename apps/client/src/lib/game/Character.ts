@@ -51,6 +51,16 @@ export class Character {
             model.rotation.copy(this.options.rotation);
           }
 
+          // Hide all FBX helper objects — only keep SkinnedMesh (character body),
+          // Bones (skeleton), and container Groups/Object3Ds
+          model.traverse((child) => {
+            if (child === model) return;
+            if (child instanceof THREE.Bone) return;
+            if ((child as THREE.SkinnedMesh).isSkinnedMesh) return;
+            if (child.type === "Group" || child.type === "Object3D") return;
+            child.visible = false;
+          });
+
           this.mixer = new THREE.AnimationMixer(model);
           this.onLoaded(model);
           this.scene.add(model);
