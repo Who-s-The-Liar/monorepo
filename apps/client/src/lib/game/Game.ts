@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import type { Character } from "./Character";
 
 export class Game {
@@ -28,7 +29,6 @@ export class Game {
     this.container = container;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x1a1a1a);
 
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -40,7 +40,16 @@ export class Game {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 0.8;
     container.appendChild(this.renderer.domElement);
+
+    // Load bar HDRI as background + environment lighting
+    new EXRLoader().load("/assets/hdri/bar.exr", (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      this.scene.background = texture;
+      this.scene.environment = texture;
+    });
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -50,9 +59,6 @@ export class Game {
     directionalLight.position.set(5, 200, 100);
     this.scene.add(directionalLight);
 
-    // Ground
-    const gridHelper = new THREE.GridHelper(1000, 100, 0x444444, 0x222222);
-    this.scene.add(gridHelper);
 
     this.clock = new THREE.Clock();
 

@@ -8,7 +8,7 @@ export interface Seat {
   initialYaw: number;
 }
 
-const EYE_HEIGHT = 93;
+const EYE_HEIGHT = 100;
 
 export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
   const seats: Seat[] = [];
@@ -56,13 +56,16 @@ export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
   return seats;
 }
 
-export const TABLE_HEIGHT = 65;
+export const TABLE_HEIGHT = 69;
 
 export function createCenterPaper(radius = 90): THREE.Mesh {
+  const loader = new THREE.TextureLoader();
+  const diffuse = loader.load("/assets/texture/wood/wood_table_diff_1k.jpg");
+
   const geometry = new THREE.CircleGeometry(radius, 64);
   const material = new THREE.MeshStandardMaterial({
-    color: 0xf5f5f0,
-    roughness: 0.8,
+    map: diffuse,
+    roughness: 0.7,
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
