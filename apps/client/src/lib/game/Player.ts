@@ -4,6 +4,8 @@ import { Character, type CharacterOptions } from "./Character";
 export interface PlayerOptions extends CharacterOptions {
   neckPosition: THREE.Vector3;
   eyeOffset: THREE.Vector3;
+  /** Initial camera yaw so it faces the right direction */
+  initialYaw?: number;
   headLimits?: {
     yawMin: number;
     yawMax: number;
@@ -29,13 +31,16 @@ export class Player extends Character {
   private readonly limits: typeof DEFAULT_LIMITS;
   private readonly smoothing: number;
 
-  private targetYaw = 0;
+  private targetYaw: number;
   private targetPitch = 0;
-  private currentYaw = 0;
+  private currentYaw: number;
   private currentPitch = 0;
 
   private onPointerLockChange: PointerLockCallback | null = null;
   private rendererDomElement: HTMLCanvasElement | null = null;
+
+  /** When true, Player stops controlling the camera (debug fly-cam takes over) */
+  debugMode = false;
 
   private readonly boundMouseMove: (e: MouseEvent) => void;
   private readonly boundClick: () => void;
@@ -50,8 +55,18 @@ export class Player extends Character {
     this.camera = camera;
     this.neckPosition = options.neckPosition.clone();
     this.eyeOffset = options.eyeOffset.clone();
-    this.limits = { ...DEFAULT_LIMITS, ...options.headLimits };
+    const baseYaw = options.initialYaw ?? 0;
+    const rawLimits = { ...DEFAULT_LIMITS, ...options.headLimits };
+    // Offset yaw limits around the initial facing direction
+    this.limits = {
+      yawMin: baseYaw + rawLimits.yawMin,
+      yawMax: baseYaw + rawLimits.yawMax,
+      pitchMin: rawLimits.pitchMin,
+      pitchMax: rawLimits.pitchMax,
+    };
     this.smoothing = options.smoothing ?? 0.15;
+    this.targetYaw = baseYaw;
+    this.currentYaw = baseYaw;
 
     this.boundMouseMove = this.handleMouseMove.bind(this);
     this.boundClick = this.handleClick.bind(this);
@@ -88,7 +103,9 @@ export class Player extends Character {
 
   update(delta: number): void {
     super.update(delta);
-    this.updateCamera();
+    if (!this.debugMode) {
+      this.updateCamera();
+    }
   }
 
   private updateCamera(): void {
@@ -127,7 +144,7 @@ export class Player extends Character {
   }
 
   private handleClick(): void {
-    this.rendererDomElement?.requestPointerLock();
+    this.rendererDomElement?.requestPointerLock()?.catch(() => {});
   }
 
   private handleLockChange(): void {
