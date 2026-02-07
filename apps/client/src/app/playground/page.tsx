@@ -14,8 +14,10 @@ export default function PlaygroundPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
+  const [shuffling, setShuffling] = useState(false);
   const gameRef = useRef<Game | null>(null);
   const playerRef = useRef<Player | null>(null);
+  const npcsRef = useRef<NPC[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -32,6 +34,7 @@ export default function PlaygroundPage() {
       game = new Game(containerRef.current);
       gameRef.current = game;
       const seats = computeSeats(playerCount);
+      const npcs: NPC[] = [];
 
       // Seat 0 is always the local player
       const playerSeat = seats[0];
@@ -46,7 +49,7 @@ export default function PlaygroundPage() {
       playerRef.current = player;
       game.addCharacter(player);
       player.attachControls(game.renderer.domElement, setIsLocked);
-      player.load();
+      await player.load();
 
       // Remaining seats are NPCs
       for (let i = 1; i < seats.length; i++) {
@@ -57,8 +60,12 @@ export default function PlaygroundPage() {
           rotation: seat.rotation,
         });
         game.addCharacter(npc);
-        npc.load();
+        await npc.load();
+        // Pre-load the shuffle animation (upper body only)
+        await npc.loadAnimation("shuffle", "/assets/Cards.fbx");
+        npcs.push(npc);
       }
+      npcsRef.current = npcs;
 
       // Add circular table in the center
       game.addMesh(createCenterPaper());
@@ -72,6 +79,7 @@ export default function PlaygroundPage() {
       game?.dispose();
       gameRef.current = null;
       playerRef.current = null;
+      npcsRef.current = [];
     };
   }, []);
 
@@ -86,6 +94,17 @@ export default function PlaygroundPage() {
     setDebugMode(next);
   }, [debugMode]);
 
+  const toggleShuffle = useCallback(() => {
+    const npcs = npcsRef.current;
+    if (npcs.length === 0) return;
+
+    const next = !shuffling;
+    for (const npc of npcs) {
+      npc.playAnimation(next ? "shuffle" : "base");
+    }
+    setShuffling(next);
+  }, [shuffling]);
+
   return (
     <div className="w-full h-screen relative">
       <div ref={containerRef} className="w-full h-full" />
@@ -96,12 +115,20 @@ export default function PlaygroundPage() {
         </div>
       )}
 
-      <button
-        onClick={toggleDebug}
-        className="absolute top-4 right-4 px-3 py-1.5 text-xs font-mono rounded bg-zinc-800 text-zinc-300 border border-zinc-600 hover:bg-zinc-700 z-10"
-      >
-        {debugMode ? "Exit Debug (Fly Cam)" : "Debug (Fly Cam)"}
-      </button>
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <button
+          onClick={toggleShuffle}
+          className="px-3 py-1.5 text-xs font-mono rounded bg-zinc-800 text-zinc-300 border border-zinc-600 hover:bg-zinc-700"
+        >
+          {shuffling ? "Stop Shuffle" : "Shuffle Cards"}
+        </button>
+        <button
+          onClick={toggleDebug}
+          className="px-3 py-1.5 text-xs font-mono rounded bg-zinc-800 text-zinc-300 border border-zinc-600 hover:bg-zinc-700"
+        >
+          {debugMode ? "Exit Debug" : "Debug"}
+        </button>
+      </div>
 
       {debugMode && (
         <div className="absolute bottom-4 left-4 text-xs font-mono text-zinc-400 bg-zinc-900/80 px-3 py-2 rounded z-10">

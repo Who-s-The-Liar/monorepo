@@ -56,7 +56,7 @@ export function computeSeats(playerCount: 2 | 3, radius = 100): Seat[] {
   return seats;
 }
 
-export const TABLE_HEIGHT = 75;
+export const TABLE_HEIGHT = 60;
 
 export function createCenterPaper(radius = 98): THREE.Mesh {
   const geometry = new THREE.CircleGeometry(radius, 64);
