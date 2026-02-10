@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import type { Character } from "./Character";
 
+export interface Updatable {
+  update(delta: number): void;
+}
+
 export class Game {
   readonly scene: THREE.Scene;
   readonly camera: THREE.PerspectiveCamera;
@@ -9,6 +13,7 @@ export class Game {
   readonly clock: THREE.Clock;
 
   private characters: Character[] = [];
+  private updatables: Updatable[] = [];
   private animationFrameId: number | null = null;
   private container: HTMLElement;
   private disposed = false;
@@ -17,6 +22,7 @@ export class Game {
   private _debugMode = false;
   private savedCameraPos: THREE.Vector3 | null = null;
   private savedCameraQuat: THREE.Quaternion | null = null;
+  private savedBackground: THREE.Color | THREE.Texture | null = null;
   private debugYaw = 0;
   private debugPitch = 0;
   private keysPressed = new Set<string>();
@@ -85,6 +91,10 @@ export class Game {
       this.savedCameraPos = this.camera.position.clone();
       this.savedCameraQuat = this.camera.quaternion.clone();
 
+      // Hide HDRI so scene is easier to inspect
+      this.savedBackground = this.scene.background as THREE.Texture | THREE.Color | null;
+      this.scene.background = new THREE.Color(0x222222);
+
       // Extract current yaw/pitch from camera
       const euler = new THREE.Euler().setFromQuaternion(this.camera.quaternion, "YXZ");
       this.debugYaw = euler.y;
@@ -106,6 +116,12 @@ export class Game {
       // Exit pointer lock
       if (document.pointerLockElement === this.renderer.domElement) {
         document.exitPointerLock();
+      }
+
+      // Restore HDRI background
+      if (this.savedBackground) {
+        this.scene.background = this.savedBackground;
+        this.savedBackground = null;
       }
 
       // Restore camera (Player.update will take over next frame)
@@ -150,6 +166,14 @@ export class Game {
     this.characters.push(character);
   }
 
+  addUpdatable(updatable: Updatable): void {
+    this.updatables.push(updatable);
+  }
+
+  removeUpdatable(updatable: Updatable): void {
+    this.updatables = this.updatables.filter((u) => u !== updatable);
+  }
+
   addMesh(mesh: THREE.Object3D): void {
     this.scene.add(mesh);
   }
@@ -163,6 +187,9 @@ export class Game {
 
       for (const character of this.characters) {
         character.update(delta);
+      }
+      for (const updatable of this.updatables) {
+        updatable.update(delta);
       }
 
       if (this._debugMode) {
@@ -196,6 +223,7 @@ export class Game {
       character.dispose();
     }
     this.characters = [];
+    this.updatables = [];
 
     this.container.removeChild(this.renderer.domElement);
     this.renderer.dispose();

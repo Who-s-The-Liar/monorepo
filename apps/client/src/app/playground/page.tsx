@@ -2,16 +2,26 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
-import { Game, Player, NPC, computeSeats, createCenterPaper } from "@/lib/game";
+import {
+  Game,
+  Player,
+  NPC,
+  computeSeats,
+  createCenterPaper,
+  CardDealer,
+} from "@/lib/game";
+import type { DealState } from "@/lib/game";
 
 export default function PlaygroundPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [shuffling, setShuffling] = useState(false);
+  const [dealState, setDealState] = useState<DealState>("idle");
   const gameRef = useRef<Game | null>(null);
   const playerRef = useRef<Player | null>(null);
   const npcsRef = useRef<NPC[]>([]);
+  const dealerRef = useRef<CardDealer | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -61,6 +71,16 @@ export default function PlaygroundPage() {
       }
       npcsRef.current = npcs;
 
+      // Card dealer — first NPC is the dealer
+      const cardDealer = new CardDealer(
+        game.scene,
+        game.camera,
+        npcs[0],
+        seats
+      );
+      game.addUpdatable(cardDealer);
+      dealerRef.current = cardDealer;
+
       // Add circular table in the center
       game.addMesh(createCenterPaper());
 
@@ -70,6 +90,8 @@ export default function PlaygroundPage() {
     setup();
 
     return () => {
+      dealerRef.current?.dispose();
+      dealerRef.current = null;
       game?.dispose();
       gameRef.current = null;
       playerRef.current = null;
@@ -103,6 +125,32 @@ export default function PlaygroundPage() {
     setShuffling(next);
   }, [shuffling]);
 
+  const handleDeal = useCallback(async () => {
+    const dealer = dealerRef.current;
+    const npcs = npcsRef.current;
+    if (!dealer || dealer.state !== "idle") return;
+
+    setDealState("shuffling");
+    for (const npc of npcs) {
+      npc.setHandCardsVisible(false);
+    }
+
+    await dealer.startDeal();
+    setDealState("dealt");
+  }, []);
+
+  const handleReset = useCallback(() => {
+    const dealer = dealerRef.current;
+    const npcs = npcsRef.current;
+    if (!dealer) return;
+
+    dealer.clearCards();
+    for (const npc of npcs) {
+      npc.setHandCardsVisible(true);
+    }
+    setDealState("idle");
+  }, []);
+
   return (
     <div className="w-full h-screen relative">
       <div ref={containerRef} className="w-full h-full" />
@@ -114,6 +162,21 @@ export default function PlaygroundPage() {
       )}
 
       <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <button
+          onClick={handleDeal}
+          disabled={dealState !== "idle"}
+          className="px-3 py-1.5 text-xs font-mono rounded bg-green-800 text-green-300 border border-green-600 hover:bg-green-700 disabled:opacity-50"
+        >
+          Deal Cards
+        </button>
+        {dealState === "dealt" && (
+          <button
+            onClick={handleReset}
+            className="px-3 py-1.5 text-xs font-mono rounded bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700"
+          >
+            New Round
+          </button>
+        )}
         <button
           onClick={toggleShuffle}
           className="px-3 py-1.5 text-xs font-mono rounded bg-zinc-800 text-zinc-300 border border-zinc-600 hover:bg-zinc-700"

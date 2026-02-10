@@ -6,3 +6,6 @@ export type { PlayerOptions, PointerLockCallback } from "./Player";
 export { NPC } from "./NPC";
 export { computeSeats, createCenterPaper } from "./seating";
 export type { Seat } from "./seating";
+export { CardDealer } from "./CardDealer";
+export type { DealState } from "./CardDealer";
+export { createCardMesh } from "./CardMesh";
