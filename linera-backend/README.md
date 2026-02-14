@@ -1,27 +1,32 @@
-# 🎲 Liars Bar - Linera Blockchain Game
+# 🎲 Liars Bar - Backend (Linera Contract)
 
-A decentralized multiplayer game built on the Linera blockchain platform for the Linera Buildathon.
+Smart contract implementation for the Liars Bar game on Linera blockchain.
 
-## 🎮 About the Game
+> **Note:** This is the backend component. See the [main README](../README.md) for complete project documentation.
 
-Liars Bar is a multiplayer bluffing game where players create tables, join games, and compete on isolated microchains. Each game runs on its own dedicated blockchain, ensuring fair play and transparent game state.
+## 🏗️ Contract Overview
 
-## ✨ Features
+This Linera smart contract implements the backend logic for Liars Bar, a multiplayer bluffing game. It handles:
 
-- **Table Management**: Create public or private game tables
-- **Multi-Player Support**: Join tables and play with other players
-- **Microchain Architecture**: Each game runs on its own dedicated chain
-- **GraphQL API**: Query game state and execute operations
-- **Web Frontend**: React-based UI for easy interaction
+- **Table/Room Management**: Create and manage game lobbies
+- **Player State**: Track players and their game participation
+- **Microchain Orchestration**: Deploy dedicated chains for each game
+- **GraphQL Service**: Expose game state through a queryable API
 
-## 🏗️ Architecture
+## 📂 File Structure
 
-The application consists of:
-
-- **Contract** (`src/contract.rs`): Core game logic, table management, and microchain creation
-- **Service** (`src/service.rs`): GraphQL query interface
-- **State** (`src/state.rs`): Data structures for rooms, players, and game chains
-- **Frontend** (`web-frontend/`): React + TypeScript UI
+```
+linera-backend/
+├── src/
+│   ├── contract.rs    # Core contract logic (operations, microchain creation)
+│   ├── service.rs     # GraphQL service implementation
+│   └── state.rs       # State data structures
+├── tests/             # Contract tests
+├── Cargo.toml         # Rust dependencies
+├── Dockerfile         # Container image
+├── compose.yaml       # Docker Compose configuration
+└── run.bash          # Automated deployment script
+```
 
 ## 🚀 Running with Docker Compose
 
@@ -130,12 +135,10 @@ linera net up --testing-prng-seed 37
 linera project publish-and-create
 ```
 
-**Run the frontend:**
+**Test the contract:**
 
 ```bash
-cd web-frontend
-npm install
-npm run dev
+cargo test
 ```
 
 ## 📋 Operations
@@ -156,45 +159,74 @@ Available GraphQL queries:
 - `roomToChain` - Map of room IDs to game chain IDs
 - `activeGameChains` - List of active game chain IDs
 
-## 🏆 Buildathon Submission
+## 🔧 Contract Details
 
-This project is structured according to the [Linera Buildathon Template](https://github.com/linera-io/buildathon-template):
+### State Management
 
-- ✅ Dockerfile with all dependencies
-- ✅ compose.yaml with required port mappings
-- ✅ run.bash for automated setup and execution
-- ✅ Healthcheck for application readiness
-- ✅ Frontend on port 5173
-- ✅ Backend services on required ports
+The contract maintains:
+- `temp_rooms`: Rooms awaiting game start
+- `players_in_rooms`: Player roster per room
+- `public_rooms`: Public vs private room mapping
+- `room_to_chain`: Mapping of rooms to their game microchains
+- `active_game_chains`: List of all active game chains
 
-## 📝 Technical Details
+### Operations
 
-**SDK Version**: Linera 0.15.8
+1. **CreateTable { ispublic: bool }**
+   - Creates a new room
+   - Adds creator as first player
+   - Marks room as public/private
 
-**Key Technologies:**
-- Rust for smart contracts
-- GraphQL for API
-- React + TypeScript for frontend
-- Docker for containerization
+2. **JoinTable { room_id: u64 }**
+   - Adds player to existing room
+   - Validates room exists and isn't full
 
-**Microchain Features:**
-- Multi-owner chains (one per game)
-- Weighted ownership (equal weight per player)
-- Multi-leader consensus rounds
-- Message passing between chains
+3. **StartGame { room_id: u64 }**
+   - Creates dedicated microchain for the game
+   - Transfers room ownership to all players
+   - Sets up multi-owner consensus
 
-## 🤝 Contributing
+### GraphQL Service
 
-This is a buildathon submission project. For questions or improvements, please open an issue.
+Exposes read-only queries:
+- `tempRooms` - Pre-game lobbies
+- `playersInRooms` - Player lists
+- `publicRooms` - Room visibility
+- `roomToChain` - Room-to-chain mapping
+- `activeGameChains` - Active game chains
 
-## 📄 License
+## 🏆 Buildathon Template
 
-MIT License - see LICENSE file for details
+This backend follows the [Linera Buildathon Template](https://github.com/linera-io/buildathon-template):
 
-## 🙏 Acknowledgments
+- ✅ Dockerfile with Rust and Linera dependencies
+- ✅ compose.yaml with required port mappings (5173, 8080, 9001, 13001)
+- ✅ run.bash for automated local network setup and deployment
+- ✅ Healthcheck waiting for frontend readiness
 
-Built for the Linera Buildathon using the Linera SDK.
+## 🧪 Testing
+
+Run contract tests:
+
+```bash
+cargo test
+```
+
+Run with coverage:
+
+```bash
+cargo tarpaulin --out Html
+```
+
+## 📝 Dependencies
+
+**Linera SDK**: 0.15.8
+- `linera-sdk` - Core blockchain functionality
+- `async-graphql` - GraphQL service layer
+- `serde` - Serialization
+
+See [Cargo.toml](./Cargo.toml) for complete dependency list.
 
 ---
 
-**Built with ❤️ on Linera**
+For complete project documentation, see the [main README](../README.md).

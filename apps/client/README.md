@@ -1,36 +1,161 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 Liars Bar - Frontend Client
 
-## Getting Started
+Interactive 3D web frontend for the Liars Bar game, built with Next.js and React Three Fiber.
 
-First, run the development server:
+> **Note:** This is the frontend component. See the [main README](../../README.md) for complete project documentation.
+
+## 🎨 Features
+
+- **3D Game Environment** - Immersive game experience with React Three Fiber
+- **Real-time Updates** - GraphQL subscriptions for live game state
+- **Responsive UI** - Works on desktop and tablet devices
+- **Linera Integration** - Direct blockchain interaction via Linera Web Client
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **3D Rendering**: React Three Fiber + Three.js
+- **Styling**: Tailwind CSS
+- **Blockchain**: Linera Web Client SDK
+- **Language**: TypeScript
+- **Package Manager**: Bun
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ or Bun
+- Running Linera backend (see [backend README](../../linera-backend/README.md))
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+bun install
+
+# Run development server
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Create optimized production build
+bun run build
 
-## Learn More
+# Start production server
+bun start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📂 Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/              # Next.js App Router pages
+│   ├── page.tsx      # Home page
+│   └── layout.tsx    # Root layout
+├── components/       # React components
+│   ├── ui/          # Reusable UI components
+│   └── game/        # Game-specific components
+├── lib/             # Utilities and helpers
+│   └── linera/      # Linera client integration
+└── styles/          # Global styles
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎮 Game Components
 
-## Deploy on Vercel
+### Core Components
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **GameCanvas** - 3D rendering canvas with Three.js scene
+- **PlayerAvatar** - 3D character models and animations
+- **GameTable** - Interactive game table with card positions
+- **LobbyManager** - Room creation and player management
+- **GameControls** - Player actions and game controls
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Linera Integration
+
+The frontend connects to the Linera backend via:
+- GraphQL queries for game state
+- Mutations for player actions
+- Chain ID and Application ID configuration
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_LINERA_RPC_URL=http://localhost:8080
+NEXT_PUBLIC_CHAIN_ID=your-chain-id
+NEXT_PUBLIC_APP_ID=your-application-id
+```
+
+### Linera Client Setup
+
+```typescript
+import { LineraClient } from '@linera/sdk'
+
+const client = new LineraClient({
+  rpcUrl: process.env.NEXT_PUBLIC_LINERA_RPC_URL,
+  chainId: process.env.NEXT_PUBLIC_CHAIN_ID,
+})
+```
+
+## 🎨 Styling
+
+This project uses:
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Reusable component library
+- **CSS Modules** - Component-scoped styles
+
+To customize the theme, edit `tailwind.config.ts`.
+
+## 📱 Responsive Design
+
+The application is optimized for:
+- Desktop (1920x1080 and above)
+- Laptop (1366x768 and above)
+- Tablet (iPad and similar)
+
+Mobile support is planned for future releases.
+
+## 🧪 Development
+
+### Linting
+
+```bash
+bun run lint
+```
+
+### Type Checking
+
+```bash
+bun run type-check
+```
+
+## 🚀 Deployment
+
+The frontend can be deployed to:
+- Vercel (recommended)
+- Netlify
+- Docker container
+- Static hosting
+
+For Docker deployment, use the backend's compose.yaml which includes the frontend.
+
+## 📝 Learn More
+
+**Next.js Resources:**
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+
+**Linera Resources:**
+- [Linera SDK Documentation](https://linera.dev)
+- [Web Client Guide](https://linera.dev/web_client.html)
+
+---
+
+For complete project documentation, see the [main README](../../README.md).
