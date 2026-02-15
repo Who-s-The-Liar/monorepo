@@ -1,7 +1,6 @@
 #![cfg_attr(target_arch = "wasm32", no_main)]
 
 mod state;
-
 use linera_sdk::{
     linera_base_types::{
         Amount, ApplicationPermissions, ChainOwnership, TimeoutConfig, WithContractAbi,
@@ -10,32 +9,32 @@ use linera_sdk::{
     Contract, ContractRuntime,
 };
 
-use liars_bar::{Message, Operation};
+use liars_cafe::{Message, Operation};
 
-use self::state::LiarsBarState;
+use self::state::LiarsCafeState;
 
-pub struct LiarsBarContract {
-    state: LiarsBarState,
+pub struct LiarsCafeContract {
+    state: LiarsCafeState,
     runtime: ContractRuntime<Self>,
 }
 
-linera_sdk::contract!(LiarsBarContract);
+linera_sdk::contract!(LiarsCafeContract);
 
-impl WithContractAbi for LiarsBarContract {
-    type Abi = liars_bar::LiarsBarAbi;
+impl WithContractAbi for LiarsCafeContract {
+    type Abi = liars_cafe::LiarsCafeAbi;
 }
 
-impl Contract for LiarsBarContract {
+impl Contract for LiarsCafeContract {
     type Message = Message;
     type Parameters = ();
     type EventValue = ();
     type InstantiationArgument = ();
 
     async fn load(runtime: ContractRuntime<Self>) -> Self {
-        let state = LiarsBarState::load(runtime.root_view_storage_context())
+        let state = LiarsCafeState::load(runtime.root_view_storage_context())
             .await
             .expect("Failed to load state");
-        LiarsBarContract { state, runtime }
+        LiarsCafeContract { state, runtime }
     }
 
     async fn instantiate(&mut self, _argument: Self::InstantiationArgument) {}
@@ -69,24 +68,31 @@ impl Contract for LiarsBarContract {
             }
             Operation::JoinTable { room_id } => {
                 let player = self.runtime.authenticated_signer().unwrap();
+                let creation_chain_id = self.runtime.application_creator_chain_id();
 
-                // Get existing players
-                let mut players = self
-                    .state
-                    .players_in_rooms
-                    .get(&room_id)
-                    .await
-                    .expect("Failed to get players")
-                    .expect("Room does not exist");
-
-                // Check if player is already in the room
-                if !players.contains(&player) {
-                    players.push(player);
-
-                    self.state
+                if self.runtime.chain_id() == creation_chain_id {
+                    // We're on the home chain — add player directly
+                    let mut players = self
+                        .state
                         .players_in_rooms
-                        .insert(&room_id, players)
-                        .expect("Failed to insert players");
+                        .get(&room_id)
+                        .await
+                        .expect("Failed to get players")
+                        .expect("Room does not exist");
+
+                    if !players.contains(&player) {
+                        players.push(player);
+
+                        self.state
+                            .players_in_rooms
+                            .insert(&room_id, players)
+                            .expect("Failed to insert players");
+                    }
+                } else {
+                    // We're on a remote chain — forward to the home chain
+                    self.runtime
+                        .prepare_message(Message::JoinTable { room_id })
+                        .send_to(creation_chain_id);
                 }
             }
             Operation::StartGame { room_id } => {
@@ -148,11 +154,35 @@ impl Contract for LiarsBarContract {
                     .unwrap_or_default();
                 assert!(!player.is_empty(), "No players in this room");
                 assert!(player.len() >= 2, "Need at least 2 players to start");
+                // table state setting
+                self.state.is_started.set(true);
+                self.state.playing_trun.set(player.first().copied());
+                for p in &player {
+                    let _ = self.state.remaining_bullet.insert(p, 6);
+                    let _ = self.state.is_eliminated.insert(p, false);
+                    self.state.players.push(*p);
+                }
+                self.state.round_count.set(1);
+            }
+            Message::JoinTable { room_id } => {
+                let player = self.runtime.authenticated_signer().unwrap();
 
-                // Note: change_ownership is not available in SDK 0.15.8
-                // For now, game state will be managed without changing chain ownership
-                // TODO: Implement multi-player ownership when SDK supports it
-                // Game started successfully with the players
+                let mut players = self
+                    .state
+                    .players_in_rooms
+                    .get(&room_id)
+                    .await
+                    .expect("Failed to get players")
+                    .expect("Room does not exist");
+
+                if !players.contains(&player) {
+                    players.push(player);
+
+                    self.state
+                        .players_in_rooms
+                        .insert(&room_id, players)
+                        .expect("Failed to insert players");
+                }
             }
         }
     }

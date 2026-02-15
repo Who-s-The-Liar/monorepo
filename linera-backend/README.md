@@ -1,12 +1,12 @@
-# 🎲 Liars Bar - Backend (Linera Contract)
+# 🎲 Liar's Cafe - Backend (Linera Contract)
 
-Smart contract implementation for the Liars Bar game on Linera blockchain.
+Smart contract implementation for the Liar's Cafe game on Linera blockchain.
 
 > **Note:** This is the backend component. See the [main README](../README.md) for complete project documentation.
 
 ## 🏗️ Contract Overview
 
-This Linera smart contract implements the backend logic for Liars Bar, a multiplayer bluffing game. It handles:
+This Linera smart contract implements the backend logic for Liar's Cafe, a multiplayer bluffing game. It handles:
 
 - **Table/Room Management**: Create and manage game lobbies
 - **Player State**: Track players and their game participation

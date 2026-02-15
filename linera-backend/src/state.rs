@@ -5,7 +5,7 @@ use linera_sdk::{
 
 #[derive(RootView, async_graphql::SimpleObject)]
 #[view(context = ViewStorageContext)]
-pub struct LiarsBarState {
+pub struct LiarsCafeState {
     // Counter for generating unique room IDs
     pub next_room_id: RegisterView<u64>,
     // Temporary rooms (before game starts)
@@ -18,14 +18,17 @@ pub struct LiarsBarState {
     pub room_to_chain: MapView<u64, ChainId>,
     // Active game chains
     pub active_game_chains: LogView<ChainId>,
-}
 
-pub struct TableState{
+    // table state
     pub is_started: RegisterView<bool>,
-    pub remaining_bullet: MapView<AccountOwner,Vec<u8>>,
-    pub deck: MapView<u8,Vec<bool>>,
-    pub is_eliminated: MapView<AccountOwner,bool>,
-    pub playing_trun: RegisterView<AccountOwner>,
-    pub players: Vec<AccountOwner>,
-    pub round_count: RegisterView<u8>
+    pub remaining_bullet: MapView<AccountOwner, u8>,
+    pub is_eliminated: MapView<AccountOwner, bool>,
+    pub playing_trun: RegisterView<Option<AccountOwner>>,
+    pub players: LogView<AccountOwner>,
+    // table & player common state
+    pub round_count: RegisterView<u8>,
+    pub plced_cards: LogView<u8>,
+
+    // player state
+    pub player_cards: LogView<u8>,
 }

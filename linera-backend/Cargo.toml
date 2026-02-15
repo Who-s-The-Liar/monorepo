@@ -1,5 +1,5 @@
 [package]
-name = "liars-bar"
+name = "liars-cafe"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,11 +16,11 @@ linera-sdk = { version = "0.15.8", features = ["test", "wasmer"] }
 tokio = { version = "1.40", features = ["rt", "sync"] }
 
 [[bin]]
-name = "liars_bar_contract"
+name = "liars_cafe_contract"
 path = "src/contract.rs"
 
 [[bin]]
-name = "liars_bar_service"
+name = "liars_cafe_service"
 path = "src/service.rs"
 
 [profile.release]

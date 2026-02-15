@@ -1,6 +1,6 @@
-# 🎮 Liars Bar - Frontend Client
+# 🎮 Liar's Cafe - Frontend Client
 
-Interactive 3D web frontend for the Liars Bar game, built with Next.js and React Three Fiber.
+Interactive 3D web frontend for the Liar's Cafe game, built with Next.js and React Three Fiber.
 
 > **Note:** This is the frontend component. See the [main README](../../README.md) for complete project documentation.
 

@@ -1,4 +1,4 @@
-# 🎲 Liars Bar - Linera Blockchain Game
+# 🎲 Liar's Cafe - Linera Blockchain Game
 
 A decentralized multiplayer bluffing game built on the Linera blockchain platform for the Linera Buildathon.
 
@@ -6,7 +6,7 @@ A decentralized multiplayer bluffing game built on the Linera blockchain platfor
 
 ## 🎮 About the Game
 
-Liars Bar is a multiplayer bluffing game where players create tables, join games, and compete on isolated microchains. Each game runs on its own dedicated blockchain, ensuring fair play and transparent game state.
+Liar's Cafe is a multiplayer bluffing game where players create tables, join games, and compete on isolated microchains. Each game runs on its own dedicated blockchain, ensuring fair play and transparent game state.
 
 ## ✨ Features
 
@@ -151,13 +151,16 @@ This project follows the [Linera Buildathon Template](https://github.com/linera-
 
 **Team Name:** Who's The Liar
 
-<!-- TODO: Add team member details -->
-- Team Member 1: [Name] - Discord: [@username] - Wallet: [address]
-- Team Member 2: [Name] - Discord: [@username] - Wallet: [address]
+For complete team information, see [TEAM.md](./TEAM.md).
+
+**Quick Contact:**
+- Primary: Vishal Sah - Discord: @weshall_sah - Email: vishalk74064@gmail.com
 
 ## 📊 Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md) for detailed progress across buildathon waves.
+
+**Current Wave:** Wave 1 (Initial Submission)
 
 ## 📄 License
 

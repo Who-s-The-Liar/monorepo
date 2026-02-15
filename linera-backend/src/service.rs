@@ -12,30 +12,30 @@ use linera_sdk::{
     Service, ServiceRuntime,
 };
 
-use liars_bar::Operation;
+use liars_cafe::Operation;
 
-use self::state::LiarsBarState;
+use self::state::LiarsCafeState;
 
-pub struct LiarsBarService {
-    state: LiarsBarState,
+pub struct LiarsCafeService {
+    state: LiarsCafeState,
     runtime: Arc<ServiceRuntime<Self>>,
 }
 
-linera_sdk::service!(LiarsBarService);
+linera_sdk::service!(LiarsCafeService);
 
-impl WithServiceAbi for LiarsBarService {
-    type Abi = liars_bar::LiarsBarAbi;
+impl WithServiceAbi for LiarsCafeService {
+    type Abi = liars_cafe::LiarsCafeAbi;
 }
 
-impl Service for LiarsBarService {
+impl Service for LiarsCafeService {
     type Parameters = ();
 
     async fn new(runtime: ServiceRuntime<Self>) -> Self {
-        let state = LiarsBarState::load(runtime.root_view_storage_context())
+        let state = LiarsCafeState::load(runtime.root_view_storage_context())
             .await
-            .expect("Faild to load bars state");
+            .expect("Faild to load Cafes state");
 
-        LiarsBarService {
+        LiarsCafeService {
             state,
             runtime: Arc::new(runtime),
         }
@@ -70,6 +70,24 @@ impl Service for LiarsBarService {
             }
         }
 
+        // Get remaining_bullet mappings
+        let mut remaining_bullet = HashMap::new();
+        let bullet_keys = self.state.remaining_bullet.indices().await.unwrap();
+        for key in bullet_keys {
+            if let Some(val) = self.state.remaining_bullet.get(&key).await.unwrap() {
+                remaining_bullet.insert(key, val);
+            }
+        }
+
+        // Get is_eliminated mappings
+        let mut is_eliminated = HashMap::new();
+        let elim_keys = self.state.is_eliminated.indices().await.unwrap();
+        for key in elim_keys {
+            if let Some(val) = self.state.is_eliminated.get(&key).await.unwrap() {
+                is_eliminated.insert(key, val);
+            }
+        }
+
         Schema::build(
             QueryRoot {
                 players_in_rooms,
@@ -77,6 +95,12 @@ impl Service for LiarsBarService {
                 room_to_chain,
                 temp_rooms: self.state.temp_rooms.read(..).await.unwrap(),
                 active_game_chains: self.state.active_game_chains.read(..).await.unwrap(),
+                is_started: *self.state.is_started.get(),
+                remaining_bullet,
+                is_eliminated,
+                playing_turn: *self.state.playing_trun.get(),
+                players: self.state.players.read(..).await.unwrap(),
+                round_count: *self.state.round_count.get(),
             },
             Operation::mutation_root(self.runtime.clone()),
             EmptySubscription,
@@ -93,6 +117,12 @@ struct QueryRoot {
     public_rooms: HashMap<u64, bool>,
     room_to_chain: HashMap<u64, ChainId>,
     active_game_chains: Vec<ChainId>,
+    is_started: bool,
+    remaining_bullet: HashMap<AccountOwner, u8>,
+    is_eliminated: HashMap<AccountOwner, bool>,
+    playing_turn: Option<AccountOwner>,
+    players: Vec<AccountOwner>,
+    round_count: u8,
 }
 
 #[Object]
@@ -111,5 +141,23 @@ impl QueryRoot {
     }
     async fn active_game_chains(&self) -> &Vec<ChainId> {
         &self.active_game_chains
+    }
+    async fn is_started(&self) -> bool {
+        self.is_started
+    }
+    async fn remaining_bullet(&self) -> &HashMap<AccountOwner, u8> {
+        &self.remaining_bullet
+    }
+    async fn is_eliminated(&self) -> &HashMap<AccountOwner, bool> {
+        &self.is_eliminated
+    }
+    async fn playing_turn(&self) -> &Option<AccountOwner> {
+        &self.playing_turn
+    }
+    async fn players(&self) -> &Vec<AccountOwner> {
+        &self.players
+    }
+    async fn round_count(&self) -> u8 {
+        self.round_count
     }
 }

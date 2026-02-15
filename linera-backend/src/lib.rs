@@ -5,14 +5,14 @@ use linera_sdk::{
 };
 use serde::{Deserialize, Serialize};
 
-pub struct LiarsBarAbi;
+pub struct LiarsCafeAbi;
 
-impl ContractAbi for LiarsBarAbi {
+impl ContractAbi for LiarsCafeAbi {
     type Operation = Operation;
     type Response = ();
 }
 
-impl ServiceAbi for LiarsBarAbi {
+impl ServiceAbi for LiarsCafeAbi {
     type Query = Request;
     type QueryResponse = Response;
 }
@@ -27,4 +27,5 @@ pub enum Operation {
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Message {
     StartGame { room_id: u64 },
+    JoinTable { room_id: u64 },
 }
