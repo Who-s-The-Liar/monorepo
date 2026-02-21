@@ -1,6 +1,6 @@
 # Team Information
 
-**Team Name:** Who's The Liar
+**Team Name:** Liar's Cafe
 
 **Team Size:** Duo (2 Members)
 

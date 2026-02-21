@@ -4,11 +4,17 @@ SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get install -y \
     pkg-config \
+    libssl-dev \
     protobuf-compiler \
     clang \
     make \
     curl \
-    python3
+    git \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add WASM target for Linera contract compilation
+RUN rustup target add wasm32-unknown-unknown
 
 # Install Linera service tools (using 0.15.8 to match Cargo.toml)
 RUN cargo install --locked linera-service@0.15.8
